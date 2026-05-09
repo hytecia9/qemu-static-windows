@@ -1,0 +1,13 @@
+diff --git a/angle/src/image_util/AstcDecompressor.h b/angle/src/image_util/AstcDecompressor.h
+index a62198e..4e7d55f 100644
+--- a/angle/src/image_util/AstcDecompressor.h
++++ b/angle/src/image_util/AstcDecompressor.h
+@@ -9,6 +9,7 @@
+ #define IMAGE_UTIL_ASTC_CPU_DECOMPRESSOR_H_
+ 
++#include <cstdint>
+ #include <memory>
+ #include <string>
+ 
+ namespace angle
+ 

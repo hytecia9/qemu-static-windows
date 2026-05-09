@@ -1,0 +1,24 @@
+[submodule "sources/deps/libepoxy"]
+	path = sources/deps/libepoxy
+	url = https://github.com/anholt/libepoxy.git
+[submodule "sources/deps/glib"]
+	path = sources/deps/glib
+	url = https://gitlab.gnome.org/GNOME/glib.git
+[submodule "sources/deps/libslirp"]
+	path = sources/deps/libslirp
+	url = https://gitlab.freedesktop.org/slirp/libslirp.git
+[submodule "sources/deps/pixman"]
+	path = sources/deps/pixman
+	url = https://gitlab.freedesktop.org/pixman/pixman.git
+[submodule "sources/deps/SDL2"]
+	path = sources/deps/SDL2
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "sources/deps/virglrenderer"]
+	path = sources/deps/virglrenderer
+	url = https://gitlab.freedesktop.org/virgl/virglrenderer.git
+[submodule "sources/anglembed"]
+	path = sources/anglembed
+	url = https://github.com/okuoku/anglembed
+[submodule "sources/qemu"]
+	path = sources/qemu
+	url = https://github.com/qemu/qemu.git

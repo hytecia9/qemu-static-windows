@@ -1,0 +1,18 @@
+diff --git a/meson.build b/meson.build
+index 05c9f9d9..948085b4 100644
+--- a/meson.build
++++ b/meson.build
+@@ -84,7 +84,10 @@ libslirp_deps = [ dependency('glib-2.0', static : glib_static) ]
+ 
+ if host_system == 'windows'
+   # Windows: pkg-config fails us here because the static version of glib-2.0
+-  # requires iconv, which is not emitted by 'pkg-config --libs --static'.
+-  libslirp_deps += [ dependency('iconv', static : glib_static) ]
++  # may require iconv, which is not emitted by 'pkg-config --libs --static'.
++  iconv_dep = dependency('iconv', static : glib_static, required : false)
++  if iconv_dep.found()
++    libslirp_deps += [ iconv_dep ]
++  endif
+ endif
+ 
+ add_project_arguments(cc.get_supported_arguments('-Wmissing-prototypes', '-Wstrict-prototypes',

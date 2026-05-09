@@ -1,0 +1,127 @@
+name: build-release
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          ref_name="${GITHUB_REF_NAME:-manual}"
+          ref_name="${ref_name//\//-}"
+          echo "ARCHIVE_NAME=qemu-static-windows-${ref_name}.zip" >> "$GITHUB_ENV"
+
+      - name: Create Docker volumes
+        shell: bash
+        run: |
+          docker volume create tmp
+          docker volume create libs
+          docker volume create dist
+
+      - name: Build Linux Docker image
+        shell: bash
+        run: docker build -t qemubuild-linux -f docker/linux/Dockerfile docker/linux
+
+      - name: Run build
+        shell: bash
+        env:
+          QSW_DOCKER_BACKEND: linux
+        run: cmake -P build.cmake
+
+      - name: Package output
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import zipfile
+
+          out_dir = pathlib.Path('out')
+          archive = pathlib.Path('${{ env.ARCHIVE_NAME }}')
+          with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
+              for path in sorted(out_dir.rglob('*')):
+                  if path.is_file():
+                      zf.write(path, path.relative_to(out_dir))
+          PY
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-static-windows
+          path: ${{ env.ARCHIVE_NAME }}
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-2025
+    permissions:
+      contents: read
+    steps:
+      - name: Enable long paths
+        shell: pwsh
+        run: git config --global core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Create Docker volumes
+        shell: pwsh
+        run: |
+          docker volume create tmp
+          docker volume create libs
+          docker volume create dist
+
+      - name: Prepare Windows container base image
+        shell: pwsh
+        run: |
+          docker pull mcr.microsoft.com/windows/servercore:ltsc2025
+          docker tag mcr.microsoft.com/windows/servercore:ltsc2025 qemubuild-windows
+
+      - name: Build Windows Docker image
+        shell: pwsh
+        run: docker build -t qemubuild -f docker/windows/Dockerfile docker/windows
+
+      - name: Run Windows build
+        shell: pwsh
+        env:
+          QSW_DOCKER_BACKEND: windows
+        run: cmake -P build.cmake
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - build-linux
+      - build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qemu-static-windows
+          path: release-artifacts
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/*.zip

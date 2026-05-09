@@ -1,0 +1,26 @@
+diff --git a/meson.build b/meson.build
+index 5fbdc75a0f..e5f0695a32 100644
+--- a/meson.build
++++ b/meson.build
+@@ -4615,7 +4615,7 @@ subdir('docs')
+ subdir('pyvenv')
+ # Tests are disabled on emscripten because they rely on host features that aren't
+ # supported by emscripten (e.g. fork and unix socket).
+-if host_os != 'emscripten'
++if host_os != 'emscripten' and not (host_machine.system() == 'windows' and get_option('prefer_static'))
+   subdir('tests')
+ endif
+ if gtk.found()
+diff --git a/python/scripts/mkvenv.py b/python/scripts/mkvenv.py
+index 8ed6a35450..be4e51f156 100644
+--- a/python/scripts/mkvenv.py
++++ b/python/scripts/mkvenv.py
+@@ -684,7 +684,7 @@ def pip_install(
+     if not online:
+         full_args += ["--no-index"]
+     if wheels_dir:
+-        full_args += ["--find-links", str(wheels_dir)]
++        full_args += ["--find-links", Path(wheels_dir).resolve().as_uri()]
+     full_args += list(args)
+     subprocess.run(
+         full_args,
