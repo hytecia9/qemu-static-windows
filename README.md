@@ -3,6 +3,8 @@
 Reproducible static Windows builds of QEMU using tracked submodule patches and
 either a Windows-container or WSL/Linux-Docker toolchain.
 
+**Current QEMU version: v11.0.0**
+
 ## Host Requirements
 
 - Git
